@@ -147,3 +147,42 @@ mod bw6_761 {
         test_rerandomize::<BW6_761>();
     }
 }
+
+mod serialize {
+    use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
+    use ark_std::rand::{SeedableRng, RngCore};
+    use ark_std::test_rng;
+    use crate::ProvingKey;
+
+    use super::{Groth16, MySillyCircuit, CircuitSpecificSetupSNARK};
+    type E = ark_bls12_381::Bls12_381;
+    
+    #[test]
+    fn test_key_consistence() {
+        let mut rng = ark_std::rand::rngs::StdRng::seed_from_u64(test_rng().next_u64());
+
+        let (pk, vk) = Groth16::<E>::setup(MySillyCircuit { a: None, b: None }, &mut rng).unwrap();
+        let (pk2, vk2) = Groth16::<E>::setup(MySillyCircuit { a: None, b: None }, &mut rng).unwrap();
+
+        assert_ne!(pk, pk2, "the twice pk is equal");
+        assert_ne!(vk, vk2, "the twice vk is equal");
+
+    }
+
+    #[test]
+    fn test_key_serialize() {
+        // reference: https://docs.rs/ark-serialize/latest/ark_serialize/
+
+        let mut rng = ark_std::rand::rngs::StdRng::seed_from_u64(test_rng().next_u64());
+
+        let (pk, _vk) = Groth16::<E>::setup(MySillyCircuit { a: None, b: None }, &mut rng).unwrap();
+        
+        let mut pk_uncompressed_bytes = Vec::<u8>::new();
+        pk.serialize_uncompressed(&mut pk_uncompressed_bytes).expect("pk serialize uncompress failed");
+
+        let pk2 = ProvingKey::<E>::deserialize_uncompressed(&*pk_uncompressed_bytes).expect("pk deserialize uncompress failed");
+
+        assert_eq!(pk, pk2);
+
+    }
+}
