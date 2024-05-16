@@ -3,10 +3,7 @@ use ark_crypto_primitives::sponge::Absorb;
 use ark_ec::{bls12::Bls12, pairing::Pairing};
 use ark_ff::{BigInt, Field, PrimeField};
 use ark_serialize::*;
-use ark_std::{
-    ops::AddAssign,
-    vec::Vec,
-};
+use ark_std::{ops::AddAssign, vec::Vec};
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 
@@ -99,8 +96,6 @@ impl ProofWithPublicInputs<Bls12_381> {
             Fq::MODULUS_BIT_SIZE / 64 + 1
         } as usize;
 
-        println!("unm64s {:?}", num_u64s);
-
         let pi_a = G1Affine::new(
             hexstr_2_fq(&proof_map.pi_a[0]),
             hexstr_2_fq(&proof_map.pi_a[1]),
@@ -126,29 +121,17 @@ impl ProofWithPublicInputs<Bls12_381> {
             .map(|s: &String| hexstr_2_fr(s))
             .collect();
 
-        println!("public inputs: hear",);
-
         let commitments_serialized = proof_map.Commitments.clone().expect("commitments is none");
-        println!("commitments {:?}", commitments_serialized.len());
         let commitment_prehash_serialized = hex::decode(&commitments_serialized[0..num_u64s * 32])
             .expect("decode commitments failed"); // msg
 
         let bytes_len = 32;
         let l = 16 + bytes_len;
         let res_bytes = expand_msg_xmd(&commitment_prehash_serialized, DST, l);
-        for num in res_bytes.iter() {
-            print!("{:02x}", num);
-        }
-        // println!("res_bytes {:?}", res_bytes);
-        // let repr: BigInt<6> =
-        //     BigInt::try_from(BigUint::from_bytes_be(&res_bytes[..])).expect("Bigint conversion failed");
-        // println!("repr {:?}", repr);
-        let com_public = Fr::from_be_bytes_mod_order(&res_bytes);
-        println!("com_public {:?}", com_public.into_bigint());
-        public_inputs.push(com_public);
-        // b50e071f5cd51ead5e17bd0cb4a86a746ed9231960774125a8c67fe860eb5bcd45c7de85f46d42f55a6246fbff0de4762e4fa6b10c19dd9b2f335a961da091d4
 
-        println!("Commitments hear",);
+        let com_public = Fr::from_be_bytes_mod_order(&res_bytes);
+        public_inputs.push(com_public);
+
         let mut comm_sum = G1Projective::default();
         if let Some(commitment) = proof_map.Commitments {
             let comm_bytes = hex::decode(commitment).expect("decode commitments failed");
@@ -172,8 +155,6 @@ impl ProofWithPublicInputs<Bls12_381> {
         }
 
         let extra: G1Affine = comm_sum.try_into().unwrap();
-
-        println!("{}", extra);
 
         Self {
             proof: Proof {

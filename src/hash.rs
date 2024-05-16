@@ -26,7 +26,7 @@ pub fn expand_msg_xmd(msg: &[u8], dst: &[u8], len_in_bytes: usize) -> Vec<u8> {
     let l_i_b_str = (len_in_bytes as u16).to_be_bytes();
     // let len0 = 2 + msg_len + dst_len + 1 + SHA256_OUTPUT_SIZE;
 
-    let mut b0_preimage = vec![
+    let b0_preimage = vec![
         &z_pad[..],
         msg,
         &l_i_b_str,
@@ -37,10 +37,9 @@ pub fn expand_msg_xmd(msg: &[u8], dst: &[u8], len_in_bytes: usize) -> Vec<u8> {
     .concat();
 
     let b0 = hash_sha256(&b0_preimage);
-    println!("b0 {:?}", b0);
 
     // let b0_len = b0.len();
-    let mut b1_preimage = vec![
+    let b1_preimage = vec![
         &b0[..],
         &[1u8],
         dst,
@@ -68,7 +67,6 @@ pub fn expand_msg_xmd(msg: &[u8], dst: &[u8], len_in_bytes: usize) -> Vec<u8> {
 
         result.extend_from_slice(&b1);
     }
-    println!("result {:?}", result);
 
     result.truncate(len_in_bytes);
     result
