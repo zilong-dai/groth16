@@ -34,7 +34,10 @@ pub mod prover;
 /// Verify proofs for the Groth16 zkSNARK construction.
 pub mod verifier;
 
-pub mod hash;
+// pub mod hash;
+
+/// Serialize proofs  and VerifyingKeys for the Groth16 zkSNARK construction.
+pub mod serialize;
 
 /// Constraints for the Groth16 verifier.
 #[cfg(feature = "r1cs")]
