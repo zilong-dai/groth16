@@ -1,0 +1,64 @@
+use ark_crypto_primitives::snark::{CircuitSpecificSetupSNARK, SNARK};
+use ark_relations::r1cs::{ConstraintSynthesizer, ConstraintSystemRef, SynthesisError};
+
+use ark_std::rand::{Rng, RngCore, SeedableRng};
+
+use ark_bls12_381::{Bls12_381, Fr};
+use ark_bn254::Fq;
+use ark_ff::PrimeField;
+use ark_std::test_rng;
+
+use ark_r1cs_std::{
+    alloc::AllocVar,
+    eq::EqGadget,
+    fields::emulated_fp::{params::OptimizationType, AllocatedEmulatedFpVar, EmulatedFpVar},
+};
+
+#[derive(Debug, Clone)]
+struct MulDemo<F: PrimeField> {
+    a: Option<F>,
+    b: Option<F>,
+    c: Option<F>,
+}
+
+impl<TargetF: PrimeField, BaseF: PrimeField> ConstraintSynthesizer<BaseF> for MulDemo<TargetF> {
+    fn generate_constraints(self, cs: ConstraintSystemRef<BaseF>) -> Result<(), SynthesisError> {
+        let a = EmulatedFpVar::new_witness(cs.clone(), || Ok(self.a.unwrap())).unwrap();
+        let b = EmulatedFpVar::new_witness(cs.clone(), || Ok(self.b.unwrap())).unwrap();
+        let c = EmulatedFpVar::new_input(cs.clone(), || Ok(self.c.unwrap())).unwrap();
+
+        let amulb = a * b;
+
+        c.enforce_equal(&amulb)
+    }
+}
+
+#[test]
+fn test_emulated_fpvar_groth16() {
+    use ark_groth16::Groth16;
+
+    let mut rng = ark_std::rand::rngs::StdRng::seed_from_u64(test_rng().next_u64());
+
+    let a: Fq = rng.gen();
+    let b: Fq = rng.gen();
+    let c = a * b;
+
+    let circuit = MulDemo::<Fq> {
+        a: Some(a),
+        b: Some(b),
+        c: Some(c),
+    };
+
+    let (pk, vk) = Groth16::<Bls12_381>::setup(circuit.clone(), &mut rng).unwrap();
+
+    let pvk = Groth16::<Bls12_381>::process_vk(&vk).unwrap();
+
+    let public_input = AllocatedEmulatedFpVar::<Fq, Fr>::get_limbs_representations(
+        &(a * b),
+        OptimizationType::Constraints,
+    )
+    .expect("get_limbs_representations failed");
+
+    let proof = Groth16::<Bls12_381>::prove(&pk, circuit.clone(), &mut rng).unwrap();
+    assert!(Groth16::<Bls12_381>::verify_with_processed_vk(&pvk, &public_input, &proof).unwrap());
+}
