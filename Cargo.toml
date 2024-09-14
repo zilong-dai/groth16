@@ -40,6 +40,9 @@ ark-mnt6-298 = { version = "0.4.0", default-features = false, features = ["r1cs"
 ark-mnt4-753 = { version = "0.4.0", default-features = false, features = ["r1cs", "curve"] }
 ark-mnt6-753 = { version = "0.4.0", default-features = false, features = ["r1cs"] }
 ark-r1cs-std = { version = "0.4.0", default-features = false }
+tiny-keccak = { version = "2.0", features = ["keccak","sha3"] }
+bitvec = "0.17.4"
+hex = "0.4.0"
 
 [features]
 default = ["parallel"]

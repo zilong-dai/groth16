@@ -34,6 +34,10 @@ pub mod prover;
 /// Verify proofs for the Groth16 zkSNARK construction.
 pub mod verifier;
 
+/// groth16 circuit gadgets.
+#[cfg(feature = "r1cs")]
+pub mod gadgets;
+
 /// Constraints for the Groth16 verifier.
 #[cfg(feature = "r1cs")]
 pub mod constraints;
