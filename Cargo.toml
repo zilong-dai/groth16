@@ -21,27 +21,32 @@ ark-serialize = { version = "0.4.0", default-features = false, features = [ "der
 ark-poly = { version = "0.4.0", default-features = false }
 ark-std = { version = "0.4.0", default-features = false }
 ark-relations = { version = "0.4.0", default-features = false }
-ark-crypto-primitives = { version = "0.4.0", default-features = false, features = ["snark"] }
+ark-crypto-primitives = { version = "0.4.0", default-features = false, features = ["snark", "sponge"] }
 ark-r1cs-std = { version = "0.4.0", default-features = false, optional = true }
 
 tracing = { version = "0.1", default-features = false, features = [ "attributes" ], optional = true }
 derivative = { version = "2.0", features = ["use_core"], optional = true}
 
 rayon = { version = "1", optional = true }
+num-bigint = "0.4.6"
 
 [dev-dependencies]
 csv = { version = "1" }
 ark-bls12-381 = { version = "0.4.0", default-features = false, features = ["curve"] }
 ark-bls12-377 = { version = "0.4.0", default-features = false, features = ["curve"] }
-ark-cp6-782 = { version = "0.4.0", default-features = false }
+ark-bn254 = { version = "0.4.0", default-features = false, features = ["curve"] }
+ark-bw6-761 = { version = "0.4.0", default-features = false }
 ark-mnt4-298 = { version = "0.4.0", default-features = false, features = ["r1cs", "curve"] }
 ark-mnt6-298 = { version = "0.4.0", default-features = false, features = ["r1cs"] }
 ark-mnt4-753 = { version = "0.4.0", default-features = false, features = ["r1cs", "curve"] }
 ark-mnt6-753 = { version = "0.4.0", default-features = false, features = ["r1cs"] }
 ark-r1cs-std = { version = "0.4.0", default-features = false }
+tiny-keccak = { version = "2.0", features = ["keccak","sha3"] }
+bitvec = "0.17.4"
+hex = "0.4.0"
 
 [features]
-default = ["parallel"]
+default = ["parallel", "r1cs"]
 std = ["ark-ff/std", "ark-ec/std", "ark-poly/std", "ark-relations/std", "ark-crypto-primitives/std", "ark-std/std" ]
 parallel = ["std", "ark-ff/parallel", "ark-poly/parallel", "ark-ec/parallel", "ark-crypto-primitives/parallel", "ark-std/parallel", "rayon"]
 r1cs = [ "ark-crypto-primitives/r1cs", "ark-r1cs-std", "tracing", "derivative" ]
@@ -77,3 +82,25 @@ lto = "thin"
 incremental = true
 debug-assertions = true
 debug = true
+
+
+# [patch.crates-io]
+# ark-ff = { git = "https://github.com/arkworks-rs/algebra/" }
+# ark-ec = { git = "https://github.com/arkworks-rs/algebra/" }
+# ark-poly = { git = "https://github.com/arkworks-rs/algebra/" }
+# ark-serialize = { git = "https://github.com/arkworks-rs/algebra/" }
+# ark-bls12-381 = { git = "https://github.com/arkworks-rs/algebra/" }
+# ark-mnt4-298 = { git = "https://github.com/arkworks-rs/algebra/" }
+# ark-mnt6-298 = { git = "https://github.com/arkworks-rs/algebra/" }
+# ark-mnt4-753 = { git = "https://github.com/arkworks-rs/algebra/" }
+# ark-mnt6-753 = { git = "https://github.com/arkworks-rs/algebra/" }
+# ark-bls12-377 = { git = "https://github.com/arkworks-rs/algebra/" }
+# ark-bw6-761 = { git = "https://github.com/arkworks-rs/algebra/" }
+# ark-bn254 = { git = "https://github.com/arkworks-rs/algebra/" }
+# ark-std = { git = "https://github.com/arkworks-rs/std/" }
+
+# ark-r1cs-std = { git = "https://github.com/arkworks-rs/r1cs-std/" }
+# ark-crypto-primitives = { git = "https://github.com/arkworks-rs/crypto-primitives/" }
+
+# ark-relations = { git = "https://github.com/arkworks-rs/snark/" }
+# ark-snark = { git = "https://github.com/arkworks-rs/snark/" }

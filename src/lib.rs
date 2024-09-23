@@ -38,6 +38,10 @@ pub mod verifier;
 #[cfg(feature = "r1cs")]
 pub mod constraints;
 
+/// Gadgets for the Groth16 circuit.
+#[cfg(feature = "r1cs")]
+pub mod gadgets;
+
 #[cfg(test)]
 mod test;
 
