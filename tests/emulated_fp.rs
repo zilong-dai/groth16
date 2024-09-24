@@ -3,7 +3,7 @@ use ark_relations::r1cs::{ConstraintSynthesizer, ConstraintSystemRef, SynthesisE
 
 use ark_std::rand::{Rng, RngCore, SeedableRng};
 
-use ark_bls12_381::Bls12_381;
+use ark_bls12_381::{Bls12_381, Fr};
 use ark_bn254::Fq;
 use ark_ff::PrimeField;
 use ark_std::test_rng;
@@ -57,8 +57,12 @@ fn test_emulated_fpvar_groth16_2() {
 
     let pvk = Groth16::<Bls12_381>::process_vk(&vk).unwrap();
 
-    let public_input = vec![];
+
+    let cc = c.into_bigint();
+    let cc = Fr::from_bigint(cc).unwrap();
+
+    let public_input = vec![cc];
 
     let proof = Groth16::<Bls12_381>::prove(&pk, circuit.clone(), &mut rng).unwrap();
-    assert!(Groth16::<Bls12_381>::verify_with_processed_vk(&pvk, &public_input, &proof).unwrap());
+    assert!(Groth16::<Bls12_381>::verify_with_processed_vk(&pvk, &public_input[..], &proof).unwrap());
 }
