@@ -3,7 +3,7 @@ use ark_r1cs_std::{
     alloc::{AllocVar, AllocationMode},
     bits::{ToBitsGadget, ToBytesGadget},
     eq::EqGadget,
-    fields::fp::FpVar,
+    fields::{fp::FpVar, FieldVar},
     prelude::Boolean,
     select::{CondSelectGadget, ThreeBitCondNegLookupGadget, TwoBitLookupGadget},
     uint8::UInt8,
@@ -34,11 +34,28 @@ impl<TargetF: PrimeField, BaseF: PrimeField> AllocatedEmulatedFpVar<TargetF, Bas
         self.cs.clone()
     }
 
-    /// Obtain the value of limbs
+    /// new
     pub fn new(cs: ConstraintSystemRef<BaseF>, value: TargetF) -> Self {
         let base_value = value.into_bigint();
         let base_value = BaseF::try_from(base_value.into()).unwrap();
         let base_value = FpVar::<BaseF>::new_witness(ns!(cs, "baseF"), || Ok(base_value)).unwrap();
+        Self {
+            cs,
+            value,
+            base_value,
+        }
+    }
+
+    /// new with mode
+    pub fn new_with_mode(
+        cs: ConstraintSystemRef<BaseF>,
+        value: TargetF,
+        mode: AllocationMode,
+    ) -> Self {
+        let base_value = value.into_bigint();
+        let base_value = BaseF::try_from(base_value.into()).unwrap();
+        let base_value =
+            FpVar::<BaseF>::new_variable(ns!(cs, "baseF"), || Ok(base_value), mode).unwrap();
         Self {
             cs,
             value,
@@ -231,7 +248,7 @@ impl<TargetF: PrimeField, BaseF: PrimeField> AllocatedEmulatedFpVar<TargetF, Bas
         let mut delta = self.sub(other)?;
         delta = should_enforce.select(&delta, &Self::zero(cs.clone())?)?;
 
-        Ok(())
+        delta.base_value.enforce_equal(&FpVar::zero())
     }
 
     pub(crate) fn conditional_enforce_not_equal(
@@ -266,7 +283,7 @@ impl<TargetF: PrimeField, BaseF: PrimeField> AllocatedEmulatedFpVar<TargetF, Bas
         let ns = cs.into();
         let cs = ns.cs();
 
-        Ok(Self::new(cs, f()?.borrow().clone()))
+        Ok(Self::new_with_mode(cs, f()?.borrow().clone(), mode))
     }
 
     /// Check that this element is in-range; i.e., each limb is in-range, and
@@ -320,7 +337,19 @@ impl<TargetF: PrimeField, BaseF: PrimeField> CondSelectGadget<BaseF>
         true_value: &Self,
         false_value: &Self,
     ) -> R1CSResult<Self> {
-        unimplemented!()
+        let base_value = FpVar::<BaseF>::conditionally_select(
+            cond,
+            &true_value.base_value,
+            &false_value.base_value,
+        )?;
+
+        if base_value.value() == true_value.base_value.value() {
+            Ok(true_value.clone())
+        } else if base_value.value() == false_value.base_value.value() {
+            Ok(false_value.clone())
+        } else {
+            unreachable!()
+        }
     }
 }
 
@@ -364,9 +393,7 @@ impl<TargetF: PrimeField, BaseF: PrimeField> AllocVar<TargetF, BaseF>
         let ns = cs.into();
         let cs = ns.cs();
         let this = Self::new_variable_unchecked(ns!(cs, "alloc"), f, mode)?;
-        // if mode == AllocationMode::Witness {
-        //     this.enforce_in_range(ns!(cs, "bits"))?;
-        // }
+
         Ok(this)
     }
 }
